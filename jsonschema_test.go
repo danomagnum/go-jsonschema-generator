@@ -2,10 +2,11 @@ package jsonschema
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	. "gopkg.in/check.v1"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
+	. "gopkg.in/check.v1"
 )
 
 func Test(t *testing.T) { TestingT(t) }
@@ -13,6 +14,12 @@ func Test(t *testing.T) { TestingT(t) }
 type propertySuite struct{}
 
 var _ = Suite(&propertySuite{})
+
+type ExampleIntEnum int
+
+func (e ExampleIntEnum) Enumerate() []any {
+	return []any{1, 2, 3, 6, 7, 8}
+}
 
 type ExampleJSONBasic struct {
 	Omitted    string  `json:"-,omitempty"`
@@ -31,11 +38,12 @@ type ExampleJSONBasic struct {
 	Bytes      []byte  `json:",omitempty"`
 	Float32    float32 `json:",omitempty"`
 	Float64    float64
+	Enum       ExampleIntEnum `json:",omitempty"`
 	Interface  interface{}
 	Timestamp  time.Time `json:",omitempty"`
 }
 
-func (self *propertySuite) TestLoad(c *C) {
+func (ps *propertySuite) TestLoad(c *C) {
 	j := &Document{}
 	j.Read(&ExampleJSONBasic{})
 
@@ -62,6 +70,7 @@ func (self *propertySuite) TestLoad(c *C) {
 				"Float64":    {Type: "number"},
 				"Interface":  {},
 				"Timestamp":  {Type: "string", Format: "date-time"},
+				"Enum":       {Type: "integer", Enum: []any{1, 2, 3, 6, 7, 8}},
 			},
 		},
 	})
@@ -71,7 +80,7 @@ type ExampleJSONBasicWithTag struct {
 	Bool bool `json:"test"`
 }
 
-func (self *propertySuite) TestLoadWithTag(c *C) {
+func (ps *propertySuite) TestLoadWithTag(c *C) {
 	j := &Document{}
 	j.Read(&ExampleJSONBasicWithTag{})
 
@@ -97,7 +106,7 @@ type ExampleJSONBasicSlices struct {
 	SliceOfStruct    []SliceStruct
 }
 
-func (self *propertySuite) TestLoadSliceAndContains(c *C) {
+func (ps *propertySuite) TestLoadSliceAndContains(c *C) {
 	j := &Document{}
 	j.Read(&ExampleJSONBasicSlices{})
 
@@ -138,7 +147,7 @@ type ExampleJSONNestedStruct struct {
 	}
 }
 
-func (self *propertySuite) TestLoadNested(c *C) {
+func (ps *propertySuite) TestLoadNested(c *C) {
 	j := &Document{}
 	j.Read(&ExampleJSONNestedStruct{})
 
@@ -168,7 +177,7 @@ type ExampleJSONEmbeddedStruct struct {
 	EmbeddedStruct
 }
 
-func (self *propertySuite) TestLoadEmbedded(c *C) {
+func (ps *propertySuite) TestLoadEmbedded(c *C) {
 	j := &Document{}
 	j.Read(&ExampleJSONEmbeddedStruct{})
 
@@ -189,7 +198,7 @@ type ExampleJSONBasicMaps struct {
 	MapOfInterface map[string]interface{}
 }
 
-func (self *propertySuite) TestLoadMap(c *C) {
+func (ps *propertySuite) TestLoadMap(c *C) {
 	j := &Document{}
 	j.Read(&ExampleJSONBasicMaps{})
 
@@ -215,7 +224,7 @@ func (self *propertySuite) TestLoadMap(c *C) {
 	})
 }
 
-func (self *propertySuite) TestLoadNonStruct(c *C) {
+func (ps *propertySuite) TestLoadNonStruct(c *C) {
 	j := &Document{}
 	j.Read([]string{})
 
@@ -228,7 +237,7 @@ func (self *propertySuite) TestLoadNonStruct(c *C) {
 	})
 }
 
-func (self *propertySuite) TestString(c *C) {
+func (ps *propertySuite) TestString(c *C) {
 	j := &Document{}
 	j.Read(true)
 
@@ -240,7 +249,7 @@ func (self *propertySuite) TestString(c *C) {
 	c.Assert(j.String(), Equals, expected)
 }
 
-func (self *propertySuite) TestMarshal(c *C) {
+func (ps *propertySuite) TestMarshal(c *C) {
 	j := &Document{}
 	j.Read(10)
 

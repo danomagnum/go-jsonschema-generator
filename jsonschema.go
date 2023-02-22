@@ -10,6 +10,13 @@ import (
 	"strings"
 )
 
+type Enumerable interface {
+	Enumerate() []any
+}
+type EnumerableDisplay interface {
+	EnumerateDisplay() []string
+}
+
 const DEFAULT_SCHEMA = "http://json-schema.org/schema#"
 
 type Document struct {
@@ -57,6 +64,7 @@ type property struct {
 	Properties           map[string]*property `json:"properties,omitempty"`
 	Required             []string             `json:"required,omitempty"`
 	AdditionalProperties bool                 `json:"additionalProperties,omitempty"`
+	Enum                 []any                `json:"enum,omitempty"`
 }
 
 func (p *property) read(t reflect.Type, opts tagOptions) {
@@ -66,6 +74,11 @@ func (p *property) read(t reflect.Type, opts tagOptions) {
 	}
 	if format != "" {
 		p.Format = format
+	}
+
+	instance := reflect.New(t)
+	if e, ok := instance.Interface().(Enumerable); ok {
+		p.Enum = e.Enumerate()
 	}
 
 	switch kind {
